@@ -910,6 +910,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                     p.next = node.next;
                 ++modCount;
                 --size;
+				// LinkedHashMap使用，HashMap无具体实现
                 afterNodeRemoval(node);
                 return node;
             }
