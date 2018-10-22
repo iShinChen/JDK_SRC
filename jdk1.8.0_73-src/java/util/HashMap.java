@@ -565,12 +565,12 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     final Node<K,V> getNode(int hash, Object key) {
         Node<K,V>[] tab; Node<K,V> first, e; int n; K k;
-		//table不为空 && table长度大于0 && table索引位置(根据hash值计算出)不为空
+        //table不为空 && table长度大于0 && table索引位置(根据hash值计算出)不为空
         if ((tab = table) != null && (n = tab.length) > 0 &&
             (first = tab[(n - 1) & hash]) != null) {
             if (first.hash == hash && // always check first node
                 ((k = first.key) == key || (key != null && key.equals(k))))
-				// first的key等于传入的key则返回first对象
+                // first的key等于传入的key则返回first对象
                 return first;
 			// 存在链表节点：可能是链表，也可能是红黑树
             if ((e = first.next) != null) {
@@ -700,13 +700,13 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         int oldThr = threshold;
         int newCap, newThr = 0;
         if (oldCap > 0) {
-			 // 老table的容量超过最大容量值
+            // 老table的容量超过最大容量值
             if (oldCap >= MAXIMUM_CAPACITY) {
-				// 设置阈值为Integer.MAX_VALUE
+                // 设置阈值为Integer.MAX_VALUE
                 threshold = Integer.MAX_VALUE;
                 return oldTab;
             }
-			// 如果容量*2<最大容量并且>=16, 则将阈值设置为原来的两倍
+            // 如果容量*2<最大容量并且>=16, 则将阈值设置为原来的两倍
             else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
                      oldCap >= DEFAULT_INITIAL_CAPACITY)
                 newThr = oldThr << 1; // double threshold
@@ -735,19 +735,19 @@ public class HashMap<K,V> extends AbstractMap<K,V>
             for (int j = 0; j < oldCap; ++j) {
                 Node<K,V> e;
                 if ((e = oldTab[j]) != null) {// 将索引值为j的老表头节点赋值给e
-					// 将老表的节点设置为空, 等待gc回收
+                    // 将老表的节点设置为空, 等待gc回收
                     oldTab[j] = null;
-					// 如果e.next为空, 则代表老表的该位置只有1个节点,
-					// 通过hash值计算新表的索引位置, 直接将该节点放在该位置
+                    // 如果e.next为空, 则代表老表的该位置只有1个节点,
+                    // 通过hash值计算新表的索引位置, 直接将该节点放在该位置
                     if (e.next == null)
                         newTab[e.hash & (newCap - 1)] = e;
                     else if (e instanceof TreeNode)
-						 // 调用treeNode的hash分布
+                        // 调用treeNode的hash分布
                         ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
                     else { // preserve order
-						// 存储跟原索引位置相同的节点
+                        // 存储跟原索引位置相同的节点
                         Node<K,V> loHead = null, loTail = null;
-						// 存储索引位置为:原索引+oldCap的节点
+                        // 存储索引位置为:原索引+oldCap的节点
                         Node<K,V> hiHead = null, hiTail = null;
                         Node<K,V> next;
                         do {
@@ -800,7 +800,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     final void treeifyBin(Node<K,V>[] tab, int hash) {
         int n, index; Node<K,V> e;
-		// table为空或者table的长度小于64, 进行扩容,不进行树化
+	// table为空或者table的长度小于64, 进行扩容,不进行树化
         if (tab == null || (n = tab.length) < MIN_TREEIFY_CAPACITY)
             resize();
 		// 根据hash值计算索引值, 遍历该索引位置的链表
@@ -868,7 +868,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     final Node<K,V> removeNode(int hash, Object key, Object value,
                                boolean matchValue, boolean movable) {
         Node<K,V>[] tab; Node<K,V> p; int n, index;
-		 // 如果table不为空并且索引位置不为空, 将该位置的节点赋值给p
+		// 如果table不为空并且索引位置不为空, 将该位置的节点赋值给p
         if ((tab = table) != null && (n = tab.length) > 0 &&
             (p = tab[index = (n - 1) & hash]) != null) {
             Node<K,V> node = null, e; K k; V v;
@@ -2301,7 +2301,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         final void split(HashMap<K,V> map, Node<K,V>[] tab, int index, int bit) {
             TreeNode<K,V> b = this;
             // Relink into lo and hi lists, preserving order
-			// 存储跟原索引位置相同的节点
+            // 存储跟原索引位置相同的节点
             TreeNode<K,V> loHead = null, loTail = null;
 			// 存储索引位置为:原索引+oldCap的节点
             TreeNode<K,V> hiHead = null, hiTail = null;
