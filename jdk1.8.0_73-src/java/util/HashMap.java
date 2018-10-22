@@ -752,39 +752,39 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                         Node<K,V> next;
                         do {
                             next = e.next;
-							 //如果e的hash值与老表的容量进行与运算为0
-							 //则扩容后的索引位置跟老表的索引位置一样
+                            //如果e的hash值与老表的容量进行与运算为0
+                            //则扩容后的索引位置跟老表的索引位置一样
                             if ((e.hash & oldCap) == 0) {
-								// 如果loTail为空, 代表该节点为第一个节点
+                                // 如果loTail为空, 代表该节点为第一个节点
                                 if (loTail == null)
                                     loHead = e;
-								// 否则将节点添加在loTail后面
+                                // 否则将节点添加在loTail后面
                                 else
                                     loTail.next = e;
                                 loTail = e;
                             }
-							//如果e的hash值与老表的容量进行与运算为1
-							//则扩容后的索引位置为:老表的索引位置＋oldCap
+                            //如果e的hash值与老表的容量进行与运算为1
+                            //则扩容后的索引位置为:老表的索引位置＋oldCap
                             else {
-								// 如果hiTail为空, 代表该节点为第一个节点
+                                // 如果hiTail为空, 代表该节点为第一个节点
                                 if (hiTail == null)
                                     hiHead = e;
-								// 否则将节点添加在hiTail后面
+                                // 否则将节点添加在hiTail后面
                                 else
                                     hiTail.next = e;
                                 hiTail = e;
                             }
                         } while ((e = next) != null);
                         if (loTail != null) {
-							// 最后一个节点的next设为空
+                            // 最后一个节点的next设为空
                             loTail.next = null;
-							// 将原索引位置的节点设置为对应的头结点
+                            // 将原索引位置的节点设置为对应的头结点
                             newTab[j] = loHead;
                         }
                         if (hiTail != null) {
-							// 最后一个节点的next设为空
+                            // 最后一个节点的next设为空
                             hiTail.next = null;
-							// 将索引位置为原索引+oldCap的节点设置为对应的头结点
+                            // 将索引位置为原索引+oldCap的节点设置为对应的头结点
                             newTab[j + oldCap] = hiHead;
                         }
                     }
