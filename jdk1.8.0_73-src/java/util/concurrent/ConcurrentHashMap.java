@@ -1013,8 +1013,10 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
         int binCount = 0;
         for (Node<K,V>[] tab = table;;) {
             Node<K,V> f; int n, i, fh;
+            //如果table为空，则进行初始化
             if (tab == null || (n = tab.length) == 0)
                 tab = initTable();
+            //如果相应位置的Node还未初始化，则通过CAS插入相应的数据
             else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) {
                 if (casTabAt(tab, i, null,
                              new Node<K,V>(hash, key, value, null)))
@@ -1023,9 +1025,11 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
             else if ((fh = f.hash) == MOVED)
                 tab = helpTransfer(tab, f);
             else {
-                V oldVal = null;
+				//如果相应位置的Node不为空且不处于移动状态，加synchronized锁
+				V oldVal = null;
                 synchronized (f) {
                     if (tabAt(tab, i) == f) {
+                        //如果该节点的hash不小于0，则遍历链表更新节点或插入新节点
                         if (fh >= 0) {
                             binCount = 1;
                             for (Node<K,V> e = f;; ++binCount) {
@@ -1046,6 +1050,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                                 }
                             }
                         }
+                        //如果该节点为TreeBin节点，则进行红黑树的插入putTreeVal
                         else if (f instanceof TreeBin) {
                             Node<K,V> p;
                             binCount = 2;
@@ -1058,6 +1063,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                         }
                     }
                 }
+                //数据产生变化，则验证是否需要进行树化操作
                 if (binCount != 0) {
                     if (binCount >= TREEIFY_THRESHOLD)
                         treeifyBin(tab, i);
@@ -1129,6 +1135,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                                         oldVal = ev;
                                         if (value != null)
                                             e.val = value;
+                                        //移除链表节点
                                         else if (pred != null)
                                             pred.next = e.next;
                                         else
@@ -1153,6 +1160,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                                     oldVal = pv;
                                     if (value != null)
                                         p.val = value;
+                                    //移除红黑树节点
                                     else if (t.removeTreeNode(p))
                                         setTabAt(tab, i, untreeify(t.first));
                                 }
