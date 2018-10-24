@@ -1025,8 +1025,8 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
             else if ((fh = f.hash) == MOVED)
                 tab = helpTransfer(tab, f);
             else {
-				//如果相应位置的Node不为空且不处于移动状态，加synchronized锁
-				V oldVal = null;
+		//如果相应位置的Node不为空且不处于移动状态，加synchronized锁
+		V oldVal = null;
                 synchronized (f) {
                     if (tabAt(tab, i) == f) {
                         //如果该节点的hash不小于0，则遍历链表更新节点或插入新节点
