@@ -88,15 +88,18 @@ public class DefaultResourceLoader implements ResourceLoader {
 	@Override
 	public Resource getResource(String location) {
 		Assert.notNull(location, "Location must not be null");
+		//如果传入的是一个文件路径，则使用容器本身的getResourceByPath方法获取Resource
 		if (location.startsWith("/")) {
 			return getResourceByPath(location);
 		}
+		//如果是类路径的方式，那需要使用ClassPathResource来得到bean文件的资源对象
 		else if (location.startsWith(CLASSPATH_URL_PREFIX)) {
 			return new ClassPathResource(location.substring(CLASSPATH_URL_PREFIX.length()), getClassLoader());
 		}
 		else {
 			try {
 				// Try to parse the location as a URL...
+				//如果是URL方式，使用UrlResource作为bean文件的资源对象
 				URL url = new URL(location);
 				return new UrlResource(url);
 			}
