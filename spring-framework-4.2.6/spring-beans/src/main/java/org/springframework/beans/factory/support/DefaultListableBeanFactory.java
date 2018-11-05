@@ -807,6 +807,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		Assert.hasText(beanName, "Bean name must not be empty");
 		Assert.notNull(beanDefinition, "BeanDefinition must not be null");
 
+		//校验解析的BeanDefiniton
 		if (beanDefinition instanceof AbstractBeanDefinition) {
 			try {
 				((AbstractBeanDefinition) beanDefinition).validate();
@@ -820,12 +821,15 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		BeanDefinition oldBeanDefinition;
 
 		oldBeanDefinition = this.beanDefinitionMap.get(beanName);
+		//检查是否有同名的BeanDefinition已经在IoC容器中注册
 		if (oldBeanDefinition != null) {
+			//如果已经注册并且不允许覆盖已注册的Bean，则抛出注册失败异常 
 			if (!isAllowBeanDefinitionOverriding()) {
 				throw new BeanDefinitionStoreException(beanDefinition.getResourceDescription(), beanName,
 						"Cannot register bean definition [" + beanDefinition + "] for bean '" + beanName +
 						"': There is already [" + oldBeanDefinition + "] bound.");
 			}
+			//如果允许覆盖，则同名的Bean，后注册的覆盖先注册的
 			else if (oldBeanDefinition.getRole() < beanDefinition.getRole()) {
 				// e.g. was ROLE_APPLICATION, now overriding with ROLE_SUPPORT or ROLE_INFRASTRUCTURE
 				if (this.logger.isWarnEnabled()) {
@@ -851,6 +855,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			this.beanDefinitionMap.put(beanName, beanDefinition);
 		}
 		else {
+			//IoC容器中没有已经注册同名的Bean，按正常注册流程注册
+			//注册的过程中需要线程同步，以保证数据的一致性
 			if (hasBeanCreationStarted()) {
 				// Cannot modify startup-time collection elements anymore (for stable iteration)
 				synchronized (this.beanDefinitionMap) {
@@ -876,6 +882,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		}
 
 		if (oldBeanDefinition != null || containsSingleton(beanName)) {
+			//重置所有已经注册过的BeanDefinition的缓存
 			resetBeanDefinition(beanName);
 		}
 	}
