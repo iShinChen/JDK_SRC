@@ -35,6 +35,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
  */
 public class AdvisorAdapterRegistrationManager implements BeanPostProcessor {
 
+	//容器中负责管理切面通知适配器注册的对象
 	private AdvisorAdapterRegistry advisorAdapterRegistry = GlobalAdvisorAdapterRegistry.getInstance();
 
 
@@ -43,16 +44,19 @@ public class AdvisorAdapterRegistrationManager implements BeanPostProcessor {
 	 * Default is the global AdvisorAdapterRegistry.
 	 * @see GlobalAdvisorAdapterRegistry
 	 */
+	
 	public void setAdvisorAdapterRegistry(AdvisorAdapterRegistry advisorAdapterRegistry) {
 		this.advisorAdapterRegistry = advisorAdapterRegistry;
 	}
 
 
+	//BeanPostProcessor在Bean对象初始化前不做任何操作，直接返回容器创建的Bean对象
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		return bean;
 	}
 
+	//BeanPostProcessor在Bean对象初始化后如果容器创建的Bean实例对象是一个切面通知适配器，则向容器的注册
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		if (bean instanceof AdvisorAdapter){
