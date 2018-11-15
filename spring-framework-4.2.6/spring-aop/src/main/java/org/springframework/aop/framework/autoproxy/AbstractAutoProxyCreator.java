@@ -293,8 +293,11 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		if (bean != null) {
+			//首先根据bean的class和name构建出key
 			Object cacheKey = getCacheKey(bean.getClass(), beanName);
+			//判断是否需要创建指定的bean
 			if (!this.earlyProxyReferences.contains(cacheKey)) {
+				//如果没有被代理过则代理
 				return wrapIfNecessary(bean, beanName, cacheKey);
 			}
 		}
@@ -331,9 +334,11 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * @return a proxy wrapping the bean, or the raw bean instance as-is
 	 */
 	protected Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) {
+		//如果已经处理过
 		if (beanName != null && this.targetSourcedBeans.contains(beanName)) {
 			return bean;
 		}
+		//如果不需要进行AOP增强
 		if (Boolean.FALSE.equals(this.advisedBeans.get(cacheKey))) {
 			return bean;
 		}
@@ -343,9 +348,12 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		}
 
 		// Create proxy if we have advice.
+		//获取需要进行增强的方法
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
+		//如果获取到了要增强的方法，如果有则需要针对这些需要增强的方法创建代理对象
 		if (specificInterceptors != DO_NOT_PROXY) {
 			this.advisedBeans.put(cacheKey, Boolean.TRUE);
+			//创建代理
 			Object proxy = createProxy(
 					bean.getClass(), beanName, specificInterceptors, new SingletonTargetSource(bean));
 			this.proxyTypes.put(cacheKey, proxy.getClass());
@@ -440,9 +448,11 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			AutoProxyUtils.exposeTargetClass((ConfigurableListableBeanFactory) this.beanFactory, beanName, beanClass);
 		}
 
+		//创建代理的工作交给ProxyFactory
 		ProxyFactory proxyFactory = new ProxyFactory();
 		proxyFactory.copyFrom(this);
 
+		//根据一些情况判断是否要设置proxyTargetClass=true
 		if (!proxyFactory.isProxyTargetClass()) {
 			if (shouldProxyTargetClass(beanClass, beanName)) {
 				proxyFactory.setProxyTargetClass(true);
