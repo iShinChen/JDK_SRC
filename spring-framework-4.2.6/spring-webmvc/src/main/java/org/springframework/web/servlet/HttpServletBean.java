@@ -121,10 +121,12 @@ public abstract class HttpServletBean extends HttpServlet
 		// Set bean properties from init parameters.
 		try {
 			PropertyValues pvs = new ServletConfigPropertyValues(getServletConfig(), this.requiredProperties);
+			// 使用BeanWrapper构造DispatcherServlet
 			BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(this);
 			ResourceLoader resourceLoader = new ServletContextResourceLoader(getServletContext());
 			bw.registerCustomEditor(Resource.class, new ResourceEditor(resourceLoader, getEnvironment()));
 			initBeanWrapper(bw);
+			// 设置DispatcherServlet属性
 			bw.setPropertyValues(pvs, true);
 		}
 		catch (BeansException ex) {
@@ -133,6 +135,7 @@ public abstract class HttpServletBean extends HttpServlet
 		}
 
 		// Let subclasses do whatever initialization they like.
+		//默认不进行任何处理，子类覆盖此方法进行初始化
 		initServletBean();
 
 		if (logger.isDebugEnabled()) {
