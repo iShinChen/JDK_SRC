@@ -489,7 +489,9 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		long startTime = System.currentTimeMillis();
 
 		try {
+			// initServletBean的主要方法，初始化webApplicationContext
 			this.webApplicationContext = initWebApplicationContext();
+			// 这个里面没有任何实现方法
 			initFrameworkServlet();
 		}
 		catch (ServletException ex) {
@@ -548,6 +550,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		}
 		if (wac == null) {
 			// No context instance is defined for this servlet -> create a local one
+			// 创建一个WebApplicationContext
 			wac = createWebApplicationContext(rootContext);
 		}
 
@@ -555,12 +558,14 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			// Either the context is not a ConfigurableApplicationContext with refresh
 			// support or the context injected at construction time had already been
 			// refreshed -> trigger initial onRefresh manually here.
+			// 模板方法，子类DispatcherServlet会覆盖这个方法进行初始化
 			onRefresh(wac);
 		}
 
 		if (this.publishContext) {
 			// Publish the context as a servlet context attribute.
 			String attrName = getServletContextAttributeName();
+			// 将新创建的容器设置到ServletContext中去
 			getServletContext().setAttribute(attrName, wac);
 			if (this.logger.isDebugEnabled()) {
 				this.logger.debug("Published WebApplicationContext of servlet '" + getServletName() +
