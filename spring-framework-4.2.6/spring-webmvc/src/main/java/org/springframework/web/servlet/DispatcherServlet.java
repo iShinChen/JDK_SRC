@@ -875,6 +875,8 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		// Keep a snapshot of the request attributes in case of an include,
 		// to be able to restore the original attributes after the include.
+		//如果是include请求，保存一份快照版本的request域中的数据
+		//doDispatcher方法结束之后，快照版本中的数据将会新的request域中数据
 		Map<String, Object> attributesSnapshot = null;
 		if (WebUtils.isIncludeRequest(request)) {
 			attributesSnapshot = new HashMap<String, Object>();
@@ -888,6 +890,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		// Make framework objects available to handlers and view objects.
+		//设置request域中的部分属性
 		request.setAttribute(WEB_APPLICATION_CONTEXT_ATTRIBUTE, getWebApplicationContext());
 		request.setAttribute(LOCALE_RESOLVER_ATTRIBUTE, this.localeResolver);
 		request.setAttribute(THEME_RESOLVER_ATTRIBUTE, this.themeResolver);
@@ -901,6 +904,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		request.setAttribute(FLASH_MAP_MANAGER_ATTRIBUTE, this.flashMapManager);
 
 		try {
+			//处理请求
 			doDispatch(request, response);
 		}
 		finally {
@@ -936,27 +940,37 @@ public class DispatcherServlet extends FrameworkServlet {
 			Exception dispatchException = null;
 
 			try {
+				// 检查是不是上传请求
 				processedRequest = checkMultipart(request);
 				multipartRequestParsed = (processedRequest != request);
 
 				// Determine handler for the current request.
+				// 寻找对应的请求处理器
 				mappedHandler = getHandler(processedRequest);
+				// 如果找不到对应的请求处理器则直接返回404错误
 				if (mappedHandler == null || mappedHandler.getHandler() == null) {
 					noHandlerFound(processedRequest, response);
 					return;
 				}
 
 				// Determine handler adapter for the current request.
+				// 根据请求处理器，获取执行操作的请求适配器
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// Process last-modified header, if supported by the handler.
+				// 获取请求的方式
 				String method = request.getMethod();
 				boolean isGet = "GET".equals(method);
+				// head请求和get一样，只是head只会取的HTTP header的信息。
 				if (isGet || "HEAD".equals(method)) {
+					// lastModified 属性可返回文档最后被修改的日期和时间。
 					long lastModified = ha.getLastModified(request, mappedHandler.getHandler());
+					
 					if (logger.isDebugEnabled()) {
 						logger.debug("Last-Modified value for [" + getRequestUri(request) + "] is: " + lastModified);
 					}
+					// checkNotModified逻辑判断当前lastModfied值和http header的上次缓存值
+					//如果还没有过期就设置304头并且返回并结束整个请求流程。否则继续。
 					if (new ServletWebRequest(request, response).checkNotModified(lastModified) && isGet) {
 						return;
 					}
@@ -967,18 +981,22 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				// Actually invoke the handler.
+				// 实际上执行处理的方法，通过请求访问对应的处理器，并且返回modelandview对象
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
+				// 如果是异步请求直接返回
 				if (asyncManager.isConcurrentHandlingStarted()) {
 					return;
 				}
 
+				// 设置默认的视图
 				applyDefaultViewName(processedRequest, mv);
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
 				dispatchException = ex;
 			}
+			// 处理返回结果。包括异常处理、渲染页面、发成完成通知出发Interceptor的afterCompletion
 			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
 		}
 		catch (Exception ex) {
@@ -988,6 +1006,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			triggerAfterCompletionWithError(processedRequest, response, mappedHandler, err);
 		}
 		finally {
+			// 判断是否异步
 			if (asyncManager.isConcurrentHandlingStarted()) {
 				// Instead of postHandle and afterCompletion
 				if (mappedHandler != null) {
@@ -996,6 +1015,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			}
 			else {
 				// Clean up any resources used by a multipart request.
+				// 删除上传请求的资源
 				if (multipartRequestParsed) {
 					cleanupMultipart(processedRequest);
 				}
