@@ -1144,11 +1144,13 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @return the HandlerExecutionChain, or {@code null} if no handler could be found
 	 */
 	protected HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+		// 迭代Spring支持的HandlerMapping，即我们配置或默认的HandlerMapping
 		for (HandlerMapping hm : this.handlerMappings) {
 			if (logger.isTraceEnabled()) {
 				logger.trace(
 						"Testing handler map [" + hm + "] in DispatcherServlet with name '" + getServletName() + "'");
 			}
+			// 查找请求的处理器HandlerExecutionChain，包括请求需要的拦截器
 			HandlerExecutionChain handler = hm.getHandler(request);
 			if (handler != null) {
 				return handler;

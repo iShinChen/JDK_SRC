@@ -311,12 +311,14 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 */
 	@Override
 	protected HandlerMethod getHandlerInternal(HttpServletRequest request) throws Exception {
+		// 使用工具类UrlPathHelper，解析用户请求url
 		String lookupPath = getUrlPathHelper().getLookupPathForRequest(request);
 		if (logger.isDebugEnabled()) {
 			logger.debug("Looking up handler method for path " + lookupPath);
 		}
 		this.mappingRegistry.acquireReadLock();
 		try {
+			 // 查找HandlerMethod核心方法
 			HandlerMethod handlerMethod = lookupHandlerMethod(lookupPath, request);
 			if (logger.isDebugEnabled()) {
 				if (handlerMethod != null) {
@@ -343,23 +345,32 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @see #handleNoMatch(Set, String, HttpServletRequest)
 	 */
 	protected HandlerMethod lookupHandlerMethod(String lookupPath, HttpServletRequest request) throws Exception {
+		// 定义匹配到的matches集合，其内存放匹配到的Match对象
 		List<Match> matches = new ArrayList<Match>();
+		// 根据请求url查找出RequestMappingInfo对象
 		List<T> directPathMatches = this.mappingRegistry.getMappingsByUrl(lookupPath);
 		if (directPathMatches != null) {
+			// 将查找到的RequestMappingInfo和处理器方法封装成Match对象存入到matches数组
 			addMatchingMappings(directPathMatches, matches, request);
 		}
+		// 若matches数组为空
 		if (matches.isEmpty()) {
 			// No choice but to go through all mappings...
+			// this.mappingRegistry.getMappings().keySet()--返回已注册所有的RequestMappingInfo
+			// 查找到将RequestMappingInfo和处理器方法封装后存入matches数组
 			addMatchingMappings(this.mappingRegistry.getMappings().keySet(), matches, request);
 		}
 
+		// matches数组非空
 		if (!matches.isEmpty()) {
+			// 排序
 			Comparator<Match> comparator = new MatchComparator(getMappingComparator(request));
 			Collections.sort(matches, comparator);
 			if (logger.isTraceEnabled()) {
 				logger.trace("Found " + matches.size() + " matching mapping(s) for [" +
 						lookupPath + "] : " + matches);
 			}
+			// 取出Match，其封装了RequestMappingInfo和处理器方法
 			Match bestMatch = matches.get(0);
 			if (matches.size() > 1) {
 				if (CorsUtils.isPreFlightRequest(request)) {
@@ -373,10 +384,12 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 							request.getRequestURL() + "': {" + m1 + ", " + m2 + "}");
 				}
 			}
+			// 返回处理器方法HandlerMethod
 			handleMatch(bestMatch.mapping, lookupPath, request);
 			return bestMatch.handlerMethod;
 		}
 		else {
+			// 未找到处理
 			return handleNoMatch(this.mappingRegistry.getMappings().keySet(), lookupPath, request);
 		}
 	}
@@ -554,6 +567,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				this.mappingLookup.put(mapping, handlerMethod);
 
 				// 获得url映射路径，将映射路径和匹配条件对象RequestMappingInfo存起来
+				//主要是调用子类RequestMappingInfoHandlerMapping.getMappingPathPatterns方法
 				List<String> directUrls = getDirectUrls(mapping);
 				for (String url : directUrls) {
 					this.urlLookup.add(url, mapping);
