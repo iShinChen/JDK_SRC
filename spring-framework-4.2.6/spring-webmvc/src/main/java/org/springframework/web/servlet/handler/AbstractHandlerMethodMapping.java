@@ -353,7 +353,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 			// 将查找到的RequestMappingInfo和处理器方法封装成Match对象存入到matches数组
 			addMatchingMappings(directPathMatches, matches, request);
 		}
-		// 若matches数组为空
+		//不存在直接匹配的RequetMappingInfo，遍历所有RequestMappingInfo
 		if (matches.isEmpty()) {
 			// No choice but to go through all mappings...
 			// this.mappingRegistry.getMappings().keySet()--返回已注册所有的RequestMappingInfo
@@ -361,7 +361,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 			addMatchingMappings(this.mappingRegistry.getMappings().keySet(), matches, request);
 		}
 
-		// matches数组非空
+		//获取最佳匹配的RequestMappingInfo对应的HandlerMethod
 		if (!matches.isEmpty()) {
 			// 排序
 			Comparator<Match> comparator = new MatchComparator(getMappingComparator(request));
