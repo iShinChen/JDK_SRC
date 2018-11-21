@@ -38,6 +38,7 @@ public interface HandlerMethodArgumentResolver {
 	 * @return {@code true} if this resolver supports the supplied parameter;
 	 * {@code false} otherwise
 	 */
+	//该解析器是否支持parameter参数的解析
 	boolean supportsParameter(MethodParameter parameter);
 
 	/**
@@ -55,6 +56,7 @@ public interface HandlerMethodArgumentResolver {
 	 * @return the resolved argument value, or {@code null}
 	 * @throws Exception in case of errors with the preparation of argument values
 	 */
+	//将方法参数从给定请求(webRequest)解析为参数值并返回
 	Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception;
 
