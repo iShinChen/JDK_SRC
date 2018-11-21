@@ -182,10 +182,14 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	 */
 	@Override
 	protected RequestMappingInfo getMappingForMethod(Method method, Class<?> handlerType) {
+		//创建方法的RequestMappingInfo
 		RequestMappingInfo info = createRequestMappingInfo(method);
 		if (info != null) {
 			RequestMappingInfo typeInfo = createRequestMappingInfo(handlerType);
 			if (typeInfo != null) {
+				//将方法RequestMappingInfo和类RequestMappingInfo合并，
+				//比如Controller类上有@RequestMapping("/mvc")，方法的@RequestMapping("/search")
+				//则合并结果为"/mvc/search"
 				info = typeInfo.combine(info);
 			}
 		}
@@ -200,9 +204,11 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	 * @see #getCustomMethodCondition(Method)
 	 */
 	private RequestMappingInfo createRequestMappingInfo(AnnotatedElement element) {
+		//获取method的@RequestMapping注解
 		RequestMapping requestMapping = AnnotatedElementUtils.findMergedAnnotation(element, RequestMapping.class);
 		RequestCondition<?> condition = (element instanceof Class<?> ?
 				getCustomTypeCondition((Class<?>) element) : getCustomMethodCondition((Method) element));
+		//构造RequestMappingInfo匹配条件对象
 		return (requestMapping != null ? createRequestMappingInfo(requestMapping, condition) : null);
 	}
 

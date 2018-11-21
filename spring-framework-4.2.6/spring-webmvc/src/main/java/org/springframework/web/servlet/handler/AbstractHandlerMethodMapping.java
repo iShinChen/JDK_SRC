@@ -193,14 +193,17 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 		if (logger.isDebugEnabled()) {
 			logger.debug("Looking for request mappings in application context: " + getApplicationContext());
 		}
+		//获取applicationContext中所有的bean name
 		String[] beanNames = (this.detectHandlerMethodsInAncestorContexts ?
 				BeanFactoryUtils.beanNamesForTypeIncludingAncestors(getApplicationContext(), Object.class) :
 				getApplicationContext().getBeanNamesForType(Object.class));
 
+		//遍历beanName数组
 		for (String beanName : beanNames) {
 			if (!beanName.startsWith(SCOPED_TARGET_NAME_PREFIX)) {
 				Class<?> beanType = null;
 				try {
+					// 获得bean的类型
 					beanType = getApplicationContext().getType(beanName);
 				}
 				catch (Throwable ex) {
@@ -209,11 +212,14 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 						logger.debug("Could not resolve target class for bean with name '" + beanName + "'", ex);
 					}
 				}
+				//isHandler会根据bean来判断bean定义中是否带有Controller注解或RequestMapping注解
 				if (beanType != null && isHandler(beanType)) {
+					// 注册url与处理器方法的关系
 					detectHandlerMethods(beanName);
 				}
 			}
 		}
+		//空方法
 		handlerMethodsInitialized(getHandlerMethods());
 	}
 
@@ -222,14 +228,20 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @param handler the bean name of a handler or a handler instance
 	 */
 	protected void detectHandlerMethods(final Object handler) {
+		//获取到当前Controller bean的handler的类型
 		Class<?> handlerType = (handler instanceof String ?
 				getApplicationContext().getType((String) handler) : handler.getClass());
 		final Class<?> userType = ClassUtils.getUserClass(handlerType);
 
+		//获取当前bean的所有handler method
+		//这里查找的依据便是根据method定义是否带有RequestMapping注解
+		//如果有根据注解创建RequestMappingInfo对象
 		Map<Method, T> methods = MethodIntrospector.selectMethods(userType,
 				new MethodIntrospector.MetadataLookup<T>() {
 					@Override
 					public T inspect(Method method) {
+						//抽象方法，由子类RequestMappingHandlerMapping实现
+						//根据RequestMapping注解信息创建匹配条件RequestMappingInfo对象
 						return getMappingForMethod(method, userType);
 					}
 				});
@@ -237,7 +249,9 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 		if (logger.isDebugEnabled()) {
 			logger.debug(methods.size() + " request handler methods found on " + userType + ": " + methods);
 		}
+		//遍历并注册当前bean的所有handler method
 		for (Map.Entry<Method, T> entry : methods.entrySet()) {
+			//注册handler method
 			registerHandlerMethod(handler, entry.getKey(), entry.getValue());
 		}
 	}
@@ -252,6 +266,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * under the same mapping
 	 */
 	protected void registerHandlerMethod(Object handler, Method method, T mapping) {
+		//调用内部类MappingRegistry的register()方法
 		this.mappingRegistry.register(mapping, handler, method);
 	}
 
@@ -527,14 +542,18 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 		public void register(T mapping, Object handler, Method method) {
 			this.readWriteLock.writeLock().lock();
 			try {
+				//创建处理器方法HandlerMethod实例，即Controller中的处理方法
 				HandlerMethod handlerMethod = createHandlerMethod(handler, method);
+				//判断匹配条件是否重复，即一个@RequestMapping的映射url只能对应一个方法
 				assertUniqueMethodMapping(handlerMethod, mapping);
 
 				if (logger.isInfoEnabled()) {
 					logger.info("Mapped \"" + mapping + "\" onto " + handlerMethod);
 				}
+				//将匹配条件RequestMappingInfo和处理器方法保存到map中
 				this.mappingLookup.put(mapping, handlerMethod);
 
+				// 获得url映射路径，将映射路径和匹配条件对象RequestMappingInfo存起来
 				List<String> directUrls = getDirectUrls(mapping);
 				for (String url : directUrls) {
 					this.urlLookup.add(url, mapping);
@@ -551,6 +570,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 					this.corsLookup.put(handlerMethod, corsConfig);
 				}
 
+				// 将映射注册对象存入map
 				this.registry.put(mapping, new MappingRegistration<T>(mapping, handlerMethod, directUrls, name));
 			}
 			finally {

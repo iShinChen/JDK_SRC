@@ -987,6 +987,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		}
 
 		finally {
+			//doService完成后重置localeContext与requestAttributes对象
 			resetContextHolders(request, previousLocaleContext, previousAttributes);
 			if (requestAttributes != null) {
 				requestAttributes.requestCompleted();
@@ -1006,6 +1007,8 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 				}
 			}
 
+			//执行成功后发布ServletRequestHandledEvent事件
+			//可以通过注册监听器来监听该事件的发生
 			publishRequestHandledEvent(request, response, startTime, failureCause);
 		}
 	}
