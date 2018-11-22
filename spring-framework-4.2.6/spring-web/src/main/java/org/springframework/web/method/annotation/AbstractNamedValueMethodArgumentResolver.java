@@ -84,9 +84,12 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 	public final Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
 
+		//获取int的Class对象
 		Class<?> paramType = parameter.getParameterType();
+		//根据参数定义创建一个NamedValueInfo对象
 		NamedValueInfo namedValueInfo = getNamedValueInfo(parameter);
 
+		//根据参数名解析出对象的值
 		Object arg = resolveName(namedValueInfo.name, parameter, webRequest);
 		if (arg == null) {
 			if (namedValueInfo.defaultValue != null) {
@@ -101,6 +104,7 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 			arg = resolveDefaultValue(namedValueInfo.defaultValue);
 		}
 
+		//上面步骤获取的args是String类型，然后转换为方法参数所需要的类型
 		if (binderFactory != null) {
 			WebDataBinder binder = binderFactory.createBinder(webRequest, null, namedValueInfo.name);
 			try {
