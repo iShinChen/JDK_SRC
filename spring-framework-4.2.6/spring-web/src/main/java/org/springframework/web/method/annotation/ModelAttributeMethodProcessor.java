@@ -101,13 +101,18 @@ public class ModelAttributeMethodProcessor implements HandlerMethodArgumentResol
 	public final Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
 
+		//解析model中的参数
 		String name = ModelFactory.getNameForParameter(parameter);
+		//如果从ModelAndViewContainer未找到，直接通过反射实例化一个对象createAttribute
+		//具体实例化是通过调用BeanUtils.instantiateClass方法来实例化的
 		Object attribute = (mavContainer.containsAttribute(name) ?
 				mavContainer.getModel().get(name) : createAttribute(name, parameter, binderFactory, webRequest));
 
 		WebDataBinder binder = binderFactory.createBinder(webRequest, attribute, name);
 		if (binder.getTarget() != null) {
+			//将请求绑定至目标binder的target对象，也就是刚刚创建的attribute对象。
 			bindRequestParameters(binder, webRequest);
+			//如果有验证，则验证参数
 			validateIfApplicable(binder, parameter);
 			if (binder.getBindingResult().hasErrors() && isBindExceptionRequired(binder, parameter)) {
 				throw new BindException(binder.getBindingResult());
