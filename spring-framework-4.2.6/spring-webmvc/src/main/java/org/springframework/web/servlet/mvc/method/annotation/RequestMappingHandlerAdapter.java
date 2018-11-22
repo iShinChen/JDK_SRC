@@ -518,14 +518,19 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		initControllerAdviceCache();
 
 		if (this.argumentResolvers == null) {
+			//初始化SpringMVC默认的方法参数解析器
+			//并添加至argumentResolvers
 			List<HandlerMethodArgumentResolver> resolvers = getDefaultArgumentResolvers();
 			this.argumentResolvers = new HandlerMethodArgumentResolverComposite().addResolvers(resolvers);
 		}
 		if (this.initBinderArgumentResolvers == null) {
+			//初始化SpringMVC默认的初始化绑定器(@InitBinder)参数解析器
+			//并添加至initBinderArgumentResolvers
 			List<HandlerMethodArgumentResolver> resolvers = getDefaultInitBinderArgumentResolvers();
 			this.initBinderArgumentResolvers = new HandlerMethodArgumentResolverComposite().addResolvers(resolvers);
 		}
 		if (this.returnValueHandlers == null) {
+			 //获取默认的方法返回值解析器
 			List<HandlerMethodReturnValueHandler> handlers = getDefaultReturnValueHandlers();
 			this.returnValueHandlers = new HandlerMethodReturnValueHandlerComposite().addHandlers(handlers);
 		}
@@ -582,12 +587,20 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	 * Return the list of argument resolvers to use including built-in resolvers
 	 * and custom resolvers provided via {@link #setCustomArgumentResolvers}.
 	 */
+	//默认的参数解析，创建了默认的24个参数解析器，并添加至resolvers
+	//这里的24个参数解析器都是针对不同的参数类型来解析的
 	private List<HandlerMethodArgumentResolver> getDefaultArgumentResolvers() {
 		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<HandlerMethodArgumentResolver>();
 
 		// Annotation-based argument resolution
+		// 基于注解的参数解析器
+		//一般用于带有@RequestParam注解的简单参数绑定
+		
+		//简单参数比如byte、int、long、double、String以及对应的包装类型
 		resolvers.add(new RequestParamMethodArgumentResolver(getBeanFactory(), false));
+		//用于处理带有@RequestParam注解，且参数类型为Map的解析绑定
 		resolvers.add(new RequestParamMapMethodArgumentResolver());
+		//一般用于处理带有@PathVariable注解的默认参数绑定
 		resolvers.add(new PathVariableMethodArgumentResolver());
 		resolvers.add(new PathVariableMapMethodArgumentResolver());
 		resolvers.add(new MatrixVariableMethodArgumentResolver());
@@ -601,6 +614,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		resolvers.add(new ExpressionValueMethodArgumentResolver(getBeanFactory()));
 
 		// Type-based argument resolution
+		// 基于类型的参数解析器
 		resolvers.add(new ServletRequestMethodArgumentResolver());
 		resolvers.add(new ServletResponseMethodArgumentResolver());
 		resolvers.add(new HttpEntityMethodProcessor(getMessageConverters(), this.requestResponseBodyAdvice));

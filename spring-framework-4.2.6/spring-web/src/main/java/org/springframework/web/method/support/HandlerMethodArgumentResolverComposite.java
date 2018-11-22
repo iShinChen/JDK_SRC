@@ -40,9 +40,12 @@ public class HandlerMethodArgumentResolverComposite implements HandlerMethodArgu
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	//它的元素在RequestMappingHandlerAdapter类的afterPropertiesSet方法中被添加
+	//存放的是SpringMVC一些默认的HandlerMethodArgumentResolver参数解析器
 	private final List<HandlerMethodArgumentResolver> argumentResolvers =
 			new LinkedList<HandlerMethodArgumentResolver>();
 
+	//存放已经解析过的参数，已经对应的HandlerMethodArgumentResolver解析器，从而加快查找过程
 	private final Map<MethodParameter, HandlerMethodArgumentResolver> argumentResolverCache =
 			new ConcurrentHashMap<MethodParameter, HandlerMethodArgumentResolver>(256);
 
