@@ -186,19 +186,28 @@ public class DefaultResultSetHandler implements ResultSetHandler {
     final List<Object> multipleResults = new ArrayList<Object>();
 
     int resultSetCount = 0;
+	//把statement中的ResultSet用ResultSetWrapper包装起来
+	//包括处理类对象的，列名，类名，列名映射等字段
     ResultSetWrapper rsw = getFirstResultSet(stmt);
 
+	//获得mappedStatement中的ResultMaps，初始化configuration的时候就已生成
     List<ResultMap> resultMaps = mappedStatement.getResultMaps();
     int resultMapCount = resultMaps.size();
     validateResultMapsCount(rsw, resultMapCount);
+	//这个循环
     while (rsw != null && resultMapCount > resultSetCount) {
+		//获取该行的resultMap
       ResultMap resultMap = resultMaps.get(resultSetCount);
+	  //处理ResultSet，将处理好的结果存到multipleResults
       handleResultSet(rsw, resultMap, multipleResults, null);
+	  //从上面这个函数出来的时候，multipleResults已经是存有结果的list了
+	  //若stmt还有下一个ResultSet,则继续循环
       rsw = getNextResultSet(stmt);
       cleanUpAfterHandlingResultSet();
       resultSetCount++;
     }
 
+	//若mapper配置文件中配了这个resultSets属性就执行，一般都不会用到
     String[] resultSets = mappedStatement.getResultSets();
     if (resultSets != null) {
       while (rsw != null && resultSetCount < resultSets.length) {
@@ -214,6 +223,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
       }
     }
 
+	//返回结果集
     return collapseSingleResultList(multipleResults);
   }
 
@@ -287,6 +297,8 @@ public class DefaultResultSetHandler implements ResultSetHandler {
   }
 
   private void validateResultMapsCount(ResultSetWrapper rsw, int resultMapCount) {
+    //如果rsw不为空，但是resultMapCount小于1就报错
+    //即有返回结果，但是没有映射，所以mybatis不知道怎么把结果转换成什么，因此报错
     if (rsw != null && resultMapCount < 1) {
       throw new ExecutorException("A query was run and no Result Maps were found for the Mapped Statement '" + mappedStatement.getId()
           + "'.  It's likely that neither a Result Type nor a Result Map was specified.");
@@ -298,9 +310,12 @@ public class DefaultResultSetHandler implements ResultSetHandler {
       if (parentMapping != null) {
         handleRowValues(rsw, resultMap, null, RowBounds.DEFAULT, parentMapping);
       } else {
+		//如果resultHandler为空
         if (resultHandler == null) {
+          //初始化一个DefaultResultHandler
           DefaultResultHandler defaultResultHandler = new DefaultResultHandler(objectFactory);
           handleRowValues(rsw, resultMap, defaultResultHandler, rowBounds, null);
+		  //multipleResults中加defaultResultHandler里面的结果集
           multipleResults.add(defaultResultHandler.getResultList());
         } else {
           handleRowValues(rsw, resultMap, resultHandler, rowBounds, null);
@@ -322,11 +337,14 @@ public class DefaultResultSetHandler implements ResultSetHandler {
   //
 
   public void handleRowValues(ResultSetWrapper rsw, ResultMap resultMap, ResultHandler<?> resultHandler, RowBounds rowBounds, ResultMapping parentMapping) throws SQLException {
+    //判断是否有嵌套的ResultMap，如association, collection
     if (resultMap.hasNestedResultMaps()) {
       ensureNoRowBounds();
       checkResultHandler();
+      //处理嵌套ResultMap
       handleRowValuesForNestedResultMap(rsw, resultMap, resultHandler, rowBounds, parentMapping);
     } else {
+      //处理简单的ResultMap
       handleRowValuesForSimpleResultMap(rsw, resultMap, resultHandler, rowBounds, parentMapping);
     }
   }
@@ -349,10 +367,13 @@ public class DefaultResultSetHandler implements ResultSetHandler {
   private void handleRowValuesForSimpleResultMap(ResultSetWrapper rsw, ResultMap resultMap, ResultHandler<?> resultHandler, RowBounds rowBounds, ResultMapping parentMapping)
       throws SQLException {
     DefaultResultContext<Object> resultContext = new DefaultResultContext<Object>();
+	//若有分页，则先跳过前面的行数(mybatis自带的分页是内存分页，全部数据都取到服务器在进行分页的)
     skipRows(rsw.getResultSet(), rowBounds);
     while (shouldProcessMoreRows(resultContext, rowBounds) && rsw.getResultSet().next()) {
       ResultMap discriminatedResultMap = resolveDiscriminatedResultMap(rsw.getResultSet(), resultMap, null);
+	  //获得整行的数据，根据map映射成java对象
       Object rowValue = getRowValue(rsw, discriminatedResultMap);
+	  //把结果存放到resultHandler中的list中，如DefaultResultHandler中的List<Object> list字段
       storeObject(resultHandler, resultContext, rowValue, parentMapping, rsw.getResultSet());
     }
   }
@@ -393,13 +414,17 @@ public class DefaultResultSetHandler implements ResultSetHandler {
 
   private Object getRowValue(ResultSetWrapper rsw, ResultMap resultMap) throws SQLException {
     final ResultLoaderMap lazyLoader = new ResultLoaderMap();
+	//创建一个对象来接受数据（根据配置生成相应的对象）
     Object rowValue = createResultObject(rsw, resultMap, lazyLoader, null);
     if (rowValue != null && !hasTypeHandlerForResultObject(rsw, resultMap.getType())) {
       final MetaObject metaObject = configuration.newMetaObject(rowValue);
       boolean foundValues = this.useConstructorMappings;
+	  //是否需要自动映射
       if (shouldApplyAutomaticMappings(resultMap, false)) {
+		//自动映射，把结果放到metaObject的originalObject也就是rowValue中
         foundValues = applyAutomaticMappings(rsw, resultMap, metaObject, null) || foundValues;
       }
+	  //通过属性映射来找
       foundValues = applyPropertyMappings(rsw, resultMap, metaObject, lazyLoader, null) || foundValues;
       foundValues = lazyLoader.size() > 0 || foundValues;
       rowValue = foundValues || configuration.isReturnInstanceForEmptyRow() ? rowValue : null;
@@ -472,11 +497,14 @@ public class DefaultResultSetHandler implements ResultSetHandler {
     }
   }
 
+  //创建自动映射的mapping
   private List<UnMappedColumnAutoMapping> createAutomaticMappings(ResultSetWrapper rsw, ResultMap resultMap, MetaObject metaObject, String columnPrefix) throws SQLException {
     final String mapKey = resultMap.getId() + ":" + columnPrefix;
     List<UnMappedColumnAutoMapping> autoMapping = autoMappingsCache.get(mapKey);
     if (autoMapping == null) {
+	  //存放映射的UnMappedColumnAutoMapping，一个对应一个字段映射
       autoMapping = new ArrayList<UnMappedColumnAutoMapping>();
+	  //通过resultSetWrapper来创建未映射的字段的映射
       final List<String> unmappedColumnNames = rsw.getUnmappedColumnNames(resultMap, columnPrefix);
       for (String columnName : unmappedColumnNames) {
         String propertyName = columnName;
@@ -490,6 +518,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
           }
         }
         final String property = metaObject.findProperty(propertyName, configuration.isMapUnderscoreToCamelCase());
+		//如果属性不为空并且有setter方法
         if (property != null && metaObject.hasSetter(property)) {
           if (resultMap.getMappedProperties().contains(property)) {
             continue;
@@ -497,6 +526,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
           final Class<?> propertyType = metaObject.getSetterType(property);
           if (typeHandlerRegistry.hasTypeHandler(propertyType, rsw.getJdbcType(columnName))) {
             final TypeHandler<?> typeHandler = rsw.getTypeHandler(propertyType, columnName);
+			//追加到autoMapping中
             autoMapping.add(new UnMappedColumnAutoMapping(columnName, property, typeHandler, propertyType.isPrimitive()));
           } else {
             configuration.getAutoMappingUnknownColumnBehavior()
@@ -513,16 +543,19 @@ public class DefaultResultSetHandler implements ResultSetHandler {
   }
 
   private boolean applyAutomaticMappings(ResultSetWrapper rsw, ResultMap resultMap, MetaObject metaObject, String columnPrefix) throws SQLException {
+	//自动获取mapping
     List<UnMappedColumnAutoMapping> autoMapping = createAutomaticMappings(rsw, resultMap, metaObject, columnPrefix);
     boolean foundValues = false;
     if (!autoMapping.isEmpty()) {
       for (UnMappedColumnAutoMapping mapping : autoMapping) {
+		//遍历autoMapping，从resultSet中解析出值（通过调用getter方法）
         final Object value = mapping.typeHandler.getResult(rsw.getResultSet(), mapping.column);
         if (value != null) {
           foundValues = true;
         }
         if (value != null || (configuration.isCallSettersOnNulls() && !mapping.primitive)) {
-          // gcode issue #377, call setter on nulls (value is not 'found')
+          // gcode issue #377, call setter on nulls (value is not 'found
+		  //如果找到就调用setter方法设置
           metaObject.setValue(mapping.property, value);
         }
       }

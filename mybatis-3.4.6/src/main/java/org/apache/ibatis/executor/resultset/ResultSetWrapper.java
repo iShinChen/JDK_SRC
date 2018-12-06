@@ -141,16 +141,22 @@ public class ResultSetWrapper {
     List<String> mappedColumnNames = new ArrayList<String>();
     List<String> unmappedColumnNames = new ArrayList<String>();
     final String upperColumnPrefix = columnPrefix == null ? null : columnPrefix.toUpperCase(Locale.ENGLISH);
+	//获取已经映射过的column
     final Set<String> mappedColumns = prependPrefixes(resultMap.getMappedColumns(), upperColumnPrefix);
+	//遍历columnNames
     for (String columnName : columnNames) {
       final String upperColumnName = columnName.toUpperCase(Locale.ENGLISH);
+	   //若mappedColumns中有此column则放入mappedColumnNames
       if (mappedColumns.contains(upperColumnName)) {
         mappedColumnNames.add(upperColumnName);
       } else {
+		  //否则放入unmappedColumnNames
         unmappedColumnNames.add(columnName);
       }
     }
+	//将mappedColumnNames放到mappedColumnNamesMap
     mappedColumnNamesMap.put(getMapKey(resultMap, columnPrefix), mappedColumnNames);
+	//将unmappedColumnNames放到unMappedColumnNamesMap
     unMappedColumnNamesMap.put(getMapKey(resultMap, columnPrefix), unmappedColumnNames);
   }
 
@@ -165,7 +171,8 @@ public class ResultSetWrapper {
 
   public List<String> getUnmappedColumnNames(ResultMap resultMap, String columnPrefix) throws SQLException {
     List<String> unMappedColumnNames = unMappedColumnNamesMap.get(getMapKey(resultMap, columnPrefix));
-    if (unMappedColumnNames == null) {
+	if (unMappedColumnNames == null) {
+      //如果还未被创建，就进行创建
       loadMappedAndUnmappedColumnNames(resultMap, columnPrefix);
       unMappedColumnNames = unMappedColumnNamesMap.get(getMapKey(resultMap, columnPrefix));
     }
