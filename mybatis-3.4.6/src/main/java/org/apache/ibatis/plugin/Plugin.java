@@ -45,6 +45,7 @@ public class Plugin implements InvocationHandler {
     Class<?> type = target.getClass();
     Class<?>[] interfaces = getAllInterfaces(type, signatureMap);
     if (interfaces.length > 0) {
+      //生成这个对象的动态代理对象
       return Proxy.newProxyInstance(
           type.getClassLoader(),
           interfaces,
@@ -57,9 +58,12 @@ public class Plugin implements InvocationHandler {
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
       Set<Method> methods = signatureMap.get(method.getDeclaringClass());
+      //如果存在签名的拦截方法
       if (methods != null && methods.contains(method)) {
+        //插件的intercept方法就会被调用并返回结果
         return interceptor.intercept(new Invocation(target, method, args));
       }
+      //否则就直接反射调度需要执行的方法
       return method.invoke(target, args);
     } catch (Exception e) {
       throw ExceptionUtil.unwrapThrowable(e);
