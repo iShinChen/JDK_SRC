@@ -221,9 +221,9 @@ public class DefaultSqlSession implements SqlSession {
   @Override
   public void commit(boolean force) {
     try {
-		//
+      //在executor中处理commit
       executor.commit(isCommitOrRollbackRequired(force));
-	  //提交完成后，数据库状态中的记录与内存中数据一致
+      //提交完成后，数据库状态中的记录与内存中数据一致
       dirty = false;
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error committing transaction.  Cause: " + e, e);
