@@ -221,7 +221,9 @@ public class DefaultSqlSession implements SqlSession {
   @Override
   public void commit(boolean force) {
     try {
+		//
       executor.commit(isCommitOrRollbackRequired(force));
+	  //提交完成后，数据库状态中的记录与内存中数据一致
       dirty = false;
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error committing transaction.  Cause: " + e, e);
@@ -314,6 +316,9 @@ public class DefaultSqlSession implements SqlSession {
   }
 
   private boolean isCommitOrRollbackRequired(boolean force) {
+    //这里我们注意 force传入的是false,而dirty在上面我们知道被设置为了true,
+    //所以最终由this.autoCommit决定
+    //当我们直接使用不带参数的openSession默认autoCommit为false故这里返回true
     return (!autoCommit && dirty) || force;
   }
 
