@@ -391,10 +391,13 @@ public final class Bootstrap {
      */
     public static void main(String args[]) {
 
+		//新建一个Bootstrap
         if (daemon == null) {
             // Don't set daemon until init() has completed
             Bootstrap bootstrap = new Bootstrap();
             try {
+				//初始化ClassLoader，并用ClassLoader创建Catalina实例
+				//并赋值给catalinaDaemon变量
                 bootstrap.init();
             } catch (Throwable t) {
                 handleThrowable(t);
