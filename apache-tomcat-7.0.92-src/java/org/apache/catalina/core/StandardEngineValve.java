@@ -100,6 +100,8 @@ final class StandardEngineValve
         throws IOException, ServletException {
 
         // Select the Host to be used for this Request
+        //Host已经事先设置到request中，直接取出
+        //其他各层容器也都是先设置到request中
         Host host = request.getHost();
         if (host == null) {
             response.sendError
@@ -113,6 +115,7 @@ final class StandardEngineValve
         }
 
         // Ask this Host to process this request
+        //将请求传递到Host的管道
         host.getPipeline().getFirst().invoke(request, response);
 
     }
