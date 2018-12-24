@@ -93,13 +93,17 @@ public abstract class LifecycleBase implements Lifecycle {
 
     @Override
     public final synchronized void init() throws LifecycleException {
+		//开始状态必须是NEW，否则抛出异常
         if (!state.equals(LifecycleState.NEW)) {
             invalidTransition(Lifecycle.BEFORE_INIT_EVENT);
         }
 
         try {
+			//初始化前状态变更为INITIALIZING
             setStateInternal(LifecycleState.INITIALIZING, null, false);
+			//通过模板方法进行初始化
             initInternal();
+			//初始化后状态变更为INITIALIZED
             setStateInternal(LifecycleState.INITIALIZED, null, false);
         } catch (Throwable t) {
             ExceptionUtils.handleThrowable(t);
@@ -118,6 +122,7 @@ public abstract class LifecycleBase implements Lifecycle {
     @Override
     public final synchronized void start() throws LifecycleException {
 
+		//进行状态检查是否在starting状态，是的话就直接返回
         if (LifecycleState.STARTING_PREP.equals(state) || LifecycleState.STARTING.equals(state) ||
                 LifecycleState.STARTED.equals(state)) {
 
@@ -131,18 +136,24 @@ public abstract class LifecycleBase implements Lifecycle {
             return;
         }
 
+		//如果还未初始化先进行初始化
         if (state.equals(LifecycleState.NEW)) {
             init();
+		//如果启动失败则关闭
         } else if (state.equals(LifecycleState.FAILED)) {
             stop();
+		//如果不是上述可处理的状态则抛出异常
         } else if (!state.equals(LifecycleState.INITIALIZED) &&
                 !state.equals(LifecycleState.STOPPED)) {
             invalidTransition(Lifecycle.BEFORE_START_EVENT);
         }
 
         try {
+			//启动前状态变更为STARTING_PREP
             setStateInternal(LifecycleState.STARTING_PREP, null, false);
+			//通过模板方法进行启动
             startInternal();
+			//启动后根据状态进行相关操作
             if (state.equals(LifecycleState.FAILED)) {
                 // This is a 'controlled' failure. The component put itself into the
                 // FAILED state so call stop() to complete the clean-up.
@@ -383,6 +394,7 @@ public abstract class LifecycleBase implements Lifecycle {
         }
 
         this.state = state;
+		//发布事件
         String lifecycleEvent = state.getLifecycleEvent();
         if (lifecycleEvent != null) {
             fireLifecycleEvent(lifecycleEvent, data);
