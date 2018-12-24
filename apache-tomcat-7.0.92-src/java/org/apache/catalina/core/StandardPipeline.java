@@ -176,16 +176,19 @@ public class StandardPipeline extends LifecycleBase
     protected synchronized void startInternal() throws LifecycleException {
 
         // Start the Valves in our pipeline (including the basic), if any
+        //使用临时变量current来遍历Values链里面的所有value，如果为空使用basic
         Valve current = first;
         if (current == null) {
             current = basic;
         }
+        //遍历所有Value并调用start方法
         while (current != null) {
             if (current instanceof Lifecycle)
                 ((Lifecycle) current).start();
             current = current.getNext();
         }
 
+        //设置生命周期为STARTING状态
         setState(LifecycleState.STARTING);
     }
 
