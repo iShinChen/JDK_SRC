@@ -1216,6 +1216,7 @@ public abstract class ContainerBase extends LifecycleMBeanBase
             ((Lifecycle) loader).start();
         logger = null;
         getLogger();
+        //如果有Manger、Cluster、Realm、resources则启动
         Manager manager = getManagerInternal();
         if ((manager != null) && (manager instanceof Lifecycle))
             ((Lifecycle) manager).start();
@@ -1229,13 +1230,16 @@ public abstract class ContainerBase extends LifecycleMBeanBase
         if ((resources != null) && (resources instanceof Lifecycle))
             ((Lifecycle) resources).start();
 
+        //获取所有子容器
         // Start our child containers, if any
         Container children[] = findChildren();
         List<Future<Void>> results = new ArrayList<Future<Void>>();
         for (int i = 0; i < children.length; i++) {
+            //通过线程调用子容器的start方法，相当于childern[i].start
             results.add(startStopExecutor.submit(new StartChild(children[i])));
         }
 
+        //处理子容器启动线程的Future
         MultiThrowable multiThrowable = null;
 
         for (Future<Void> result : results) {
@@ -1255,14 +1259,17 @@ public abstract class ContainerBase extends LifecycleMBeanBase
                     multiThrowable.getThrowable());
         }
 
+        //启动管道
         // Start the Valves in our pipeline (including the basic), if any
         if (pipeline instanceof Lifecycle) {
             ((Lifecycle) pipeline).start();
         }
 
 
+        //设置声明周期状态为STARTING
         setState(LifecycleState.STARTING);
 
+        //启动后台线程
         // Start our thread
         threadStart();
     }
