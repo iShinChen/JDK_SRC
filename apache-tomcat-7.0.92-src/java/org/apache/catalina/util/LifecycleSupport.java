@@ -63,8 +63,10 @@ public final class LifecycleSupport {
     /**
      * The set of registered LifecycleListeners for event notifications.
      */
+    //保存监听器
     private LifecycleListener listeners[] = new LifecycleListener[0];
     
+    //当监听器发生变化时进行同步的同步锁
     private final Object listenersLock = new Object(); // Lock object for changes to listeners
 
 
