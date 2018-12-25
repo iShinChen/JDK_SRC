@@ -477,10 +477,12 @@ public class NioEndpoint extends AbstractEndpoint<NioChannel> {
         serverSock.socket().setSoTimeout(getSocketProperties().getSoTimeout());
 
         // Initialize thread count defaults for acceptor, poller
+        //初始化需要启动Acceptor线程的个数，如果为0必须设置为1 ，否则无法工作
         if (acceptorThreadCount == 0) {
             // FIXME: Doesn't seem to work that well with multiple accept threads
             acceptorThreadCount = 1;
         }
+        //初始化需要启动poller线程的个数，小于1时改为1
         if (pollerThreadCount <= 0) {
             //minimum one poller thread
             pollerThreadCount = 1;
@@ -488,6 +490,7 @@ public class NioEndpoint extends AbstractEndpoint<NioChannel> {
         stopLatch = new CountDownLatch(pollerThreadCount);
 
         // Initialize SSL if needed
+        //如果需要则初始化SSL
         if (isSSLEnabled()) {
             SSLUtil sslUtil = handler.getSslImplementation().getSSLUtil(this);
 
