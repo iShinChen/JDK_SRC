@@ -402,7 +402,9 @@ class Thread implements Runnable {
         g.addUnstarted();
 
         this.group = g;
+        //设置是否为守护线程
         this.daemon = parent.isDaemon();
+        //设置优先级
         this.priority = parent.getPriority();
         if (security == null || isCCLOverridden(parent.getClass()))
             this.contextClassLoader = parent.getContextClassLoader();
