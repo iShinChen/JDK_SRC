@@ -266,6 +266,7 @@ public class Semaphore implements java.io.Serializable {
      *        This value may be negative, in which case releases
      *        must occur before any acquires will be granted.
      */
+    //参数permits表示许可数目，即同时可以允许多少线程进行访问
     public Semaphore(int permits) {
         sync = new NonfairSync(permits);
     }
@@ -281,6 +282,7 @@ public class Semaphore implements java.io.Serializable {
      *        first-in first-out granting of permits under contention,
      *        else {@code false}
      */
+    //参数fair表示是否是公平的，即等待时间越久的越先获取许可
     public Semaphore(int permits, boolean fair) {
         sync = fair ? new FairSync(permits) : new NonfairSync(permits);
     }
@@ -313,6 +315,7 @@ public class Semaphore implements java.io.Serializable {
      *
      * @throws InterruptedException if the current thread is interrupted
      */
+    //获取一个许可
     public void acquire() throws InterruptedException {
         sync.acquireSharedInterruptibly(1);
     }
@@ -364,6 +367,7 @@ public class Semaphore implements java.io.Serializable {
      * @return {@code true} if a permit was acquired and {@code false}
      *         otherwise
      */
+    //尝试获取一个许可，若获取成功，则立即返回true，若获取失败，则立即返回false
     public boolean tryAcquire() {
         return sync.nonfairTryAcquireShared(1) >= 0;
     }
@@ -409,6 +413,7 @@ public class Semaphore implements java.io.Serializable {
      *         if the waiting time elapsed before a permit was acquired
      * @throws InterruptedException if the current thread is interrupted
      */
+    //尝试获取一个许可，若在指定的时间内获取成功，则立即返回true，否则则立即返回false
     public boolean tryAcquire(long timeout, TimeUnit unit)
         throws InterruptedException {
         return sync.tryAcquireSharedNanos(1, unit.toNanos(timeout));
@@ -427,6 +432,7 @@ public class Semaphore implements java.io.Serializable {
      * Correct usage of a semaphore is established by programming convention
      * in the application.
      */
+    //释放一个许可
     public void release() {
         sync.releaseShared(1);
     }
@@ -467,6 +473,7 @@ public class Semaphore implements java.io.Serializable {
      * @throws InterruptedException if the current thread is interrupted
      * @throws IllegalArgumentException if {@code permits} is negative
      */
+    //获取permits个许可
     public void acquire(int permits) throws InterruptedException {
         if (permits < 0) throw new IllegalArgumentException();
         sync.acquireSharedInterruptibly(permits);
@@ -527,6 +534,7 @@ public class Semaphore implements java.io.Serializable {
      *         {@code false} otherwise
      * @throws IllegalArgumentException if {@code permits} is negative
      */
+    //尝试获取permits个许可，若获取成功，则立即返回true，若获取失败，则立即返回false
     public boolean tryAcquire(int permits) {
         if (permits < 0) throw new IllegalArgumentException();
         return sync.nonfairTryAcquireShared(permits) >= 0;
@@ -582,6 +590,7 @@ public class Semaphore implements java.io.Serializable {
      * @throws InterruptedException if the current thread is interrupted
      * @throws IllegalArgumentException if {@code permits} is negative
      */
+    //尝试获取permits个许可，若在指定的时间内获取成功，则立即返回true，否则则立即返回false
     public boolean tryAcquire(int permits, long timeout, TimeUnit unit)
         throws InterruptedException {
         if (permits < 0) throw new IllegalArgumentException();
@@ -610,6 +619,7 @@ public class Semaphore implements java.io.Serializable {
      * @param permits the number of permits to release
      * @throws IllegalArgumentException if {@code permits} is negative
      */
+    //释放permits个许可
     public void release(int permits) {
         if (permits < 0) throw new IllegalArgumentException();
         sync.releaseShared(permits);
