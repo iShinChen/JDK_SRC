@@ -350,6 +350,7 @@ public class CyclicBarrier {
      *         broken when {@code await} was called, or the barrier
      *         action (if present) failed due an exception.
      */
+    //调用await()方法的线程会被挂起，它会等待直到多个任务都执行完后才继续执行下面的任务
     public int await() throws InterruptedException, BrokenBarrierException {
         try {
             return dowait(false, 0L);
@@ -420,6 +421,8 @@ public class CyclicBarrier {
      *         when {@code await} was called, or the barrier action (if
      *         present) failed due an exception
      */
+    //和await()类似，只不过等待一定的时间后还未执行完的话
+    //就让已经执行完的线程继续往下执行，未执行完的线程抛出Timeout异常
     public int await(long timeout, TimeUnit unit)
         throws InterruptedException,
                BrokenBarrierException,
